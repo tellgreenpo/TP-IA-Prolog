@@ -222,12 +222,12 @@ manhattan(U, Diff, Elt) :-
     Diff is abs(L2-L1)+abs(C2-C1).
     
 heuristique2(U, H) :-
-    findall(Diff, (nth1(_, U, Ligne),nth1(_, Ligne, Elt),manhattan(U, Diff, Elt)), Couts), 
+    findall(Diff, (nth1(_, U, Ligne),nth1(_, Ligne, Elt),manhattan(U, Diff, Elt)), Counts), 
     sumlist(Couts, H).
     
     
     
-    
+
     
     
     
