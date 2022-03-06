@@ -4,14 +4,14 @@
 
 /*
 Rappels sur l'algorithme
- 
+
 - structures de donnees principales = 2 ensembles : P (etat pendants) et Q (etats clos)
 - P est dedouble en 2 arbres binaires de recherche equilibres (AVL) : Pf et Pu
- 
+
    Pf est l'ensemble des etats pendants (pending states), ordonnes selon
    f croissante (h croissante en cas d'egalite de f). Il permet de trouver
    rapidement le prochain etat a developper (celui qui a f(U) minimum).
-   
+
    Pu est le meme ensemble mais ordonne lexicographiquement (selon la donnee de
    l'etat). Il permet de retrouver facilement n'importe quel etat pendant
 
@@ -33,7 +33,7 @@ Predicat principal de l'algorithme :
 		si S appartient a Ps (etat deja rencontre), on compare
 			g(S)+h(S) avec la valeur deja calculee pour f(S)
 			si g(S)+h(S) < f(S) on reclasse S dans Pf avec les nouvelles valeurs
-				g et f 
+				g et f
 			sinon on ne touche pas a Pf
 		si S est entierement nouveau on l'insere dans Pf et dans Ps
 	- appelle recursivement etoile avec les nouvelles valeurs NewPF, NewPs, NewQs
@@ -42,7 +42,7 @@ Predicat principal de l'algorithme :
 
 %*******************************************************************************
 
-:- ['avl.pl'].       % predicats pour gerer des arbres bin. de recherche   
+:- ['avl.pl'].       % predicats pour gerer des arbres bin. de recherche
 :- ['taquin.pl'].    % predicats definissant le systeme a etudier
 
 %*******************************************************************************
@@ -56,7 +56,7 @@ main :-
 	G0 is 0,
 	F0 is H0 + G0,
 
-	% initialisations Pf, Pu et Q 
+	% initialisations Pf, Pu et Q
 	empty(Pf),insert([[F0,H0,G0],Ini],Pf,Pf1),
 	empty(Pu),insert([Ini,[F0,H0,G0],nil,nil],Pu,Pu1),
 	empty(Q),insert([Ini,[F0,H0,G0],nil,nil],Q,Q1),
@@ -68,22 +68,28 @@ main :-
 %*******************************************************************************
 
 expand([[F,H,G],U],L):-
-	findall([U1, [F, H, G], U, Mv],(rule(Mv,1,U,U1), heuristique(H1), G1 is G+1, F1 is H1+G1),L).
-	
+	findall([U1, [F1, H1, G1], U, Mv],(rule(Mv,1,U,U1), heuristique(H1), G1 is G+1, F1 is H1+G1),L).
+
+loop_successors([],_).
+loop_successors([[U1, [_, _, _], _, _]|T],Q):-
+	belongs(U1,Q),
+	loop_successors(T,Q).
+loop_successors([[U1, [F, H, G], Pere, Mv]|T],Pu):-
+	belongs(U1,Pu),
+	supress([U1,[F1,H1,G1],Pere1,Mv1], _, Pu_res),
+	F < F1,  % Le noeud le moins couteux est inserer
+	insert([[U1, [F, H, G], Pere, Mv],Pu,Pu_update)
+	loop_successors(T,Pu_update).
+
 
 aetoile([], [], _) :- write("Pas de solution").
 aetoile(Pf, Pu, Q) :-
 	suppress_min(([_, U]), Pf, Pf_res),
-	final_state(U), 
+	final_state(U),
 	write_state(U).
 aetoile(Pf, Pu, Q) :-
 	suppress_min([U,[F,H,G],U_Pre,Mv], Pu, Pu_res),
 	suppress([[F,H,G],U],Pf,Pf_res), % Suppression noeud frr
 	% determination tous les noeuds fils et calcul evaluation
-
-
-	
-	
-
-	
-   
+	expand([[F,H,G],U],L),
+	loop_successors(L,Q),
