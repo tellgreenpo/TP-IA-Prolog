@@ -126,4 +126,28 @@ affiche_solution([[U1,[F1,H1,G1],Pere1,Mv1]|T]):-
 	write(G1),nl,
 	write(Pere1),nl,
 	write(Mv1),nl,
+	nl,
 	affiche_solution(T).
+
+
+test_expand(L):-
+	initial_state(Ini),
+	heuristique(Ini, H0),
+	G0 is 0,
+	F0 is H0 + G0,
+	expand([[F0,G0,H0],Ini],L),
+	affiche_solution(L).
+
+test_loop_successors_ini():-
+	initial_state(Ini),
+	heuristique(Ini, H0),
+	G0 is 0,
+	F0 is H0 + G0,
+	expand([[F0,G0,H0],Ini],L),
+	empty(Q),
+	empty(Pu),
+	empty(Pf),
+	loop_successors(L,Q,Pu,Pf),
+	put_flat(Q),
+	put_flat(Pu),
+	put_flat(Pf).
