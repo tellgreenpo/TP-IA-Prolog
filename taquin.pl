@@ -1,21 +1,21 @@
-/* Fichier du probleme. 
+/* Fichier du probleme.
 
 Doit contenir au moins 4 predicats qui seront utilises par A*
 
    etat_initial(I)                                         % definit l'etat initial
 
-   etat_final(F)                                           % definit l'etat final  
+   etat_final(F)                                           % definit l'etat final
 
    rule(Rule_Name, Rule_Cost, Before_State, After_State)   % règles applicables
 
-   heuristique(Current_State, Hval)				           % calcul de l'heuristique 
+   heuristique(Current_State, Hval)				           % calcul de l'heuristique
 
 
 Les autres prédicats sont spécifiques au Taquin.
 */
 
 
-%:- lib(listut).      % Laisser cette directive en commentaire si vous utilisez Swi-Prolog 
+%:- lib(listut).      % Laisser cette directive en commentaire si vous utilisez Swi-Prolog
 
 % Sinon décommentez la ligne si vous utilisez ECLiPSe Prolog :
 % -> permet de disposer du predicat nth1(N, List, E)
@@ -29,12 +29,12 @@ Les autres prédicats sont spécifiques au Taquin.
 
 %********************
 % ETAT INITIAL DU JEU
-%********************   
+%********************
 % format :  initial_state(+State) ou State est une matrice (liste de listes)
 
 
 initial_state([ [b, h, c],       % C'EST L'EXEMPLE PRIS EN COURS
-              [a, f, d],       % 
+              [a, f, d],       %
               [g,vide,e] ]).   % h1=4,   h2=5,   f*=5
 
 
@@ -42,7 +42,7 @@ initial_state([ [b, h, c],       % C'EST L'EXEMPLE PRIS EN COURS
 % AUTRES EXEMPLES POUR LES TESTS DE  A*
 
 /*
-initial_state([ [ a, b, c],        
+initial_state([ [ a, b, c],
                 [ g, h, d],
                 [vide,f, e] ]). % h2=2, f*=2
 
@@ -56,12 +56,12 @@ initial_state([ [f, g, a],
 
 initial_state([ [e, f, g],
                 [d,vide,h],
-                [c, b, a]  ]). % h2=24, f*=30 
+                [c, b, a]  ]). % h2=24, f*=30
 
 initial_state([ [a, b, c],
                 [g,vide,d],
                 [h, f, e]]). % etat non connexe avec l'etat final (PAS DE SOLUTION)
-*/  
+*/
 
 
 %******************
@@ -75,8 +75,8 @@ final_state([[a, b,  c],
 
 %% !!!!!!!!!!!!!!!!!!!!!!!!!!!!! 1.1.a !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 final_state_4x4([[a, b, c, d],
-                  [e, f, g, h], 
-                [i, j, k, l], 
+                  [e, f, g, h],
+                [i, j, k, l],
                 [m, n, o, vide]]).
 
 
@@ -92,7 +92,7 @@ write_state([Line|Rest]) :-
 
 
 %**********************************************
-% REGLES DE DEPLACEMENT (up, down, left, right)             
+% REGLES DE DEPLACEMENT (up, down, left, right)
 %**********************************************
 % format :   rule(+Rule_Name, ?Rule_Cost, +Current_State, ?Next_State)
 
@@ -109,7 +109,7 @@ rule(right,1, S1, S2) :-
     horizontal_permutation(vide,_X,S1,S2).
 
 %***********************
-% Deplacement horizontal            
+% Deplacement horizontal
 %***********************
 % format :   horizontal_permutation(?Piece1,?Piece2,+Current_State, ?Next_State)
 
@@ -119,7 +119,7 @@ horizontal_permutation(X,Y,S1,S2) :-
     append(Above,[Line2|Rest], S2).
 
 %***********************************************
-% Echange de 2 objets consecutifs dans une liste             
+% Echange de 2 objets consecutifs dans une liste
 %***********************************************
 
 exchange(X,Y,[X,Y|List], [Y,X|List]).
@@ -127,7 +127,7 @@ exchange(X,Y,[Z|List1],  [Z|List2] ):-
     exchange(X,Y,List1,List2).
 
 %*********************
-% Deplacement vertical            
+% Deplacement vertical
 %*********************
 
 vertical_permutation(X,Y,S1,S2) :-
@@ -136,13 +136,13 @@ vertical_permutation(X,Y,S1,S2) :-
     delete(N,Y,Line2,Rest2),    % enleve Y en position N a Line2,   donne Rest2
     delete(N,Y,Line3,Rest1),    % insere Y en position N dans Rest1 donne Line3
     delete(N,X,Line4,Rest2),    % insere X en position N dans Rest2 donne Line4
-    append(Above, [Line3,Line4|Below], S2). % recompose S2 
+    append(Above, [Line3,Line4|Below], S2). % recompose S2
 
 %***********************************************************************
-% Retrait d'une occurrence X en position N dans une liste L (resultat R) 
+% Retrait d'une occurrence X en position N dans une liste L (resultat R)
 %***********************************************************************
 % use case 1 :   delete(?N,?X,+L,?R)
-% use case 2 :   delete(?N,?X,?L,+R)   
+% use case 2 :   delete(?N,?X,?L,+R)
 
 delete(1,X,[X|L], L).
 delete(N,X,[Y|L], [Y|R]) :-
@@ -177,8 +177,8 @@ delete(N,X,[Y|L], [Y|R]) :-
 %*************
 
 heuristique(U,H) :-
-    heuristique1(U, H).  % au debut on utilise l'heuristique 1 
-%   heuristique2(U, H).  % ensuite utilisez plutot l'heuristique 2  
+%    heuristique1(U, H).  % au debut on utilise l'heuristique 1
+   heuristique2(U, H).  % ensuite utilisez plutot l'heuristique 2
 
 
 %****************
@@ -195,7 +195,7 @@ heuristique(U,H) :-
 % On peut également comparer les pieces qui se trouvent aux mêmes coordonnees dans U et dans H et voir s'il sagit de la
 % même piece.
 
-% Definir enfin l'heuristique qui détermine toutes les pièces mal placées (voir prédicat findall) 
+% Definir enfin l'heuristique qui détermine toutes les pièces mal placées (voir prédicat findall)
 % et les compte (voir prédicat length)
 
 notsame(Elem,L,C):- final_state(Fin),nth1(L,Fin,Ligne),nth1(C,Ligne,ElemF), Elem \= vide, Elem \= ElemF.
@@ -220,36 +220,7 @@ manhattan(U, Diff, Elt) :-
 	coordonnees([L1,C1], U, Elt),
     coordonnees([L2,C2], Fin, Elt),
     Diff is abs(L2-L1)+abs(C2-C1).
-    
+
 heuristique2(U, H) :-
-    findall(Diff, (nth1(_, U, Ligne),nth1(_, Ligne, Elt),manhattan(U, Diff, Elt)), Counts), 
+    findall(Diff, (nth1(_, U, Ligne),nth1(_, Ligne, Elt),manhattan(U, Diff, Elt)), Counts),
     sumlist(Couts, H).
-    
-    
-    
-
-    
-    
-    
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-

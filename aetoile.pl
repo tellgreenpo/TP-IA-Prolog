@@ -67,19 +67,41 @@ main :-
 
 %*******************************************************************************
 
-expand([[F,H,G],U],L):-
-	findall([U1, [F1, H1, G1], U, Mv],(rule(Mv,1,U,U1), heuristique(H1), G1 is G+1, F1 is H1+G1),L).
 
-loop_successors([],_).
-loop_successors([[U1, [_, _, _], _, _]|T],Q):-
+expand([[F,H,G],U],L):-
+	findall([U1, [F1, H1, G1], U, Mv],(rule(Mv,1,U,U1), heuristique(U1,H1), G1 is G+1, F1 is H1+G1),L).
+
+loop_successors([],_,_).
+% Appartient a Q
+loop_successors([[U1, [_, _, _], _, _]|T],Q,_,_):-
 	belongs(U1,Q),
-	loop_successors(T,Q).
-loop_successors([[U1, [F, H, G], Pere, Mv]|T],Pu):-
+	loop_successors(T,Q,_).
+
+% Appartient a Pu mais etat nouveau est meilleur
+loop_successors([[U1, [F, H, G], Pere, Mv]|T],_,Pu,Pf):-
 	belongs(U1,Pu),
-	supress([U1,[F1,H1,G1],Pere1,Mv1], _, Pu_res),
-	F < F1,  % Le noeud le moins couteux est inserer
-	insert([[U1, [F, H, G], Pere, Mv],Pu,Pu_update)
-	loop_successors(T,Pu_update).
+	suppress([U1,[F1,H1,G1],Pere1,Mv1], Pu, Pu_res),
+	suppress([_,U1], Pf, Pf_res),
+	F < F1,  % Le noeud le moins couteux est insere
+	insert([U1, [F, H, G], Pere, Mv],Pu_res,Pu_update),
+	insert([[F, H, G], U1],Pf_res,Pf_update),
+	loop_successors(T,_,Pu_update,Pf_update).
+
+% Appartient a Pu mais etat deja present est meilleur
+loop_successors([[U1, [F, H, G], Pere, Mv]|T],_,Pu,Pf):-
+	belongs(U1,Pu),
+	suppress([U1,[F1,H1,G1],Pere1,Mv1], Pu, Pu_res),
+	suppress([_,U1], Pf, Pf_res),
+	F >= F1,  % Le noeud le moins couteux est insere
+	insert([U1,[F1,H1,G1],Pere1,Mv1],Pu_res,Pu_update),
+	insert([[F1,H1,G1],U1],Pf_res,Pf_update),
+	loop_successors(T,_,Pu_update,Pf_update).
+
+% Situation nouvelle
+loop_successors([[U1, [F, H, G], Pere, Mv]|T],_,Pu,Pf):-
+	insert([U1, [F, H, G], Pere, Mv],Pu_res,Pu_update),
+	insert([[F, H, G], U1],Pf_res,Pf_update),
+	loop_successors(T,_,Pu_update,Pf_update).
 
 
 aetoile([], [], _) :- write("Pas de solution").
@@ -92,4 +114,6 @@ aetoile(Pf, Pu, Q) :-
 	suppress([[F,H,G],U],Pf,Pf_res), % Suppression noeud frr
 	% determination tous les noeuds fils et calcul evaluation
 	expand([[F,H,G],U],L),
-	loop_successors(L,Q),
+	loop_successors(L,Q,Pu,Pf),
+	insert([U,[F,H,G],U_Pre,Mv],Q,Q_update),
+	aetoile(Pf_res,Pu_res,Q_update).
