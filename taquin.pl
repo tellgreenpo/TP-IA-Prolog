@@ -223,4 +223,4 @@ manhattan(U, Diff, Elt) :-
 
 heuristique2(U, H) :-
     findall(Diff, (nth1(_, U, Ligne),nth1(_, Ligne, Elt),manhattan(U, Diff, Elt)), Counts),
-    sumlist(Couts, H).
+    sumlist(Counts, H).

@@ -68,11 +68,11 @@ main :-
 %*******************************************************************************
 
 
-expand([[F,H,G],U],L):-
+expand([[_,_,G],U],L):-
 	findall([U1, [F1, H1, G1], U, Mv],(rule(Mv,1,U,U1), heuristique(U1,H1), G1 is G+1, F1 is H1+G1),L).
 
 loop_successors([],_,_).
-% Appartient a Q
+% Appartient a QF1
 loop_successors([[U1, [_, _, _], _, _]|T],Q,_,_):-
 	belongs(U1,Q),
 	loop_successors(T,Q,_).
@@ -80,7 +80,7 @@ loop_successors([[U1, [_, _, _], _, _]|T],Q,_,_):-
 % Appartient a Pu mais etat nouveau est meilleur
 loop_successors([[U1, [F, H, G], Pere, Mv]|T],_,Pu,Pf):-
 	belongs(U1,Pu),
-	suppress([U1,[F1,H1,G1],Pere1,Mv1], Pu, Pu_res),
+	suppress([U1,[F1,_,_],_,_], Pu, Pu_res),
 	suppress([_,U1], Pf, Pf_res),
 	F < F1,  % Le noeud le moins couteux est insere
 	insert([U1, [F, H, G], Pere, Mv],Pu_res,Pu_update),
@@ -88,7 +88,7 @@ loop_successors([[U1, [F, H, G], Pere, Mv]|T],_,Pu,Pf):-
 	loop_successors(T,_,Pu_update,Pf_update).
 
 % Appartient a Pu mais etat deja present est meilleur
-loop_successors([[U1, [F, H, G], Pere, Mv]|T],_,Pu,Pf):-
+loop_successors([[U1, [F, _, _], _, _]|T],_,Pu,Pf):-
 	belongs(U1,Pu),
 	suppress([U1,[F1,H1,G1],Pere1,Mv1], Pu, Pu_res),
 	suppress([_,U1], Pf, Pf_res),
@@ -99,14 +99,14 @@ loop_successors([[U1, [F, H, G], Pere, Mv]|T],_,Pu,Pf):-
 
 % Situation nouvelle
 loop_successors([[U1, [F, H, G], Pere, Mv]|T],_,Pu,Pf):-
-	insert([U1, [F, H, G], Pere, Mv],Pu_res,Pu_update),
-	insert([[F, H, G], U1],Pf_res,Pf_update),
+	insert([U1, [F, H, G], Pere, Mv],Pu,Pu_update),
+	insert([[F, H, G], U1],Pf,Pf_update),
 	loop_successors(T,_,Pu_update,Pf_update).
 
 
 aetoile([], [], _) :- write("Pas de solution").
-aetoile(Pf, Pu, Q) :-
-	suppress_min(([_, U]), Pf, Pf_res),
+aetoile(Pf, _, _) :-
+	suppress_min(([_, U]), Pf, _),
 	final_state(U),
 	write_state(U).
 aetoile(Pf, Pu, Q) :-
@@ -117,3 +117,13 @@ aetoile(Pf, Pu, Q) :-
 	loop_successors(L,Q,Pu,Pf),
 	insert([U,[F,H,G],U_Pre,Mv],Q,Q_update),
 	aetoile(Pf_res,Pu_res,Q_update).
+
+affiche_solution([]).
+affiche_solution([[U1,[F1,H1,G1],Pere1,Mv1]|T]):-
+	write(U1),nl,
+	write(F1),nl,
+	write(H1),nl,
+	write(G1),nl,
+	write(Pere1),nl,
+	write(Mv1),nl,
+	affiche_solution(T).
