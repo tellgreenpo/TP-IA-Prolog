@@ -12,7 +12,7 @@
 % integration aetoile : OK
 %*************************
 
-% Les AVL sont des arbres BINAIRES DE RECHERCHE H-EQUILIBRES : 
+% Les AVL sont des arbres BINAIRES DE RECHERCHE H-EQUILIBRES :
 % La hauteur de l'avl A est d�finie par :
 %  -1, si A est vide (A=nil)
 %  1 + max( hauteur(ss_arbre_gauche(A)), hauteur(ss_arbre_droitee(A)) ) sinon
@@ -27,11 +27,11 @@
 % PREDICATS EXPORTES ET COMPLEXITE ALGORITHMIQUE
 %***********************************************
 % soit N = nombre de noeuds de l'arbre				%   UTILITE POUR A*
-%													%   ----------------													
+%													%   ----------------
 % empty(?Avl)						O(1)			%<<< initialisation de P et Q
-% height(+Avl, ?Height)             O(1)			
-% put_flat(+Avl)                    O(N)			
-% put_90(+Avl)                      O(N)			
+% height(+Avl, ?Height)             O(1)
+% put_flat(+Avl)                    O(N)
+% put_90(+Avl)                      O(N)
 % belongs(+Elem, +Avl)              O(log N)		%<<< appartenance d'un noeud � Q
 % subtree(+Elem, +Avl, Ss_Avl)      O(log N)
 % insert(+Elem, +Avant, ?Apres)     O(log N)		%<<< insertion d'un nouveau noeud dans P ou dans Q
@@ -76,7 +76,7 @@ height(avl(_G,_R,_D, H), H).
 put_flat(nil).
 put_flat(avl(G,R,D,_H)) :-
 	put_flat(G),
-	nl, write(R), 
+	nl, write(R),
 	put_flat(D).
 
 	%----------------------------
@@ -96,7 +96,7 @@ put_90(avl(G,R,D,_H),Str) :-
 	put_90(G,Str2).
 
 	%-----------------------------------------
-	% Appartenance d'un element donne a un AVL	
+	% Appartenance d'un element donne a un AVL
 	%-----------------------------------------
 
 belongs(Elem, avl(G,Racine,D,_Hauteur)) :-
@@ -109,9 +109,9 @@ belongs(Elem, avl(G,Racine,D,_Hauteur)) :-
 			belongs(Elem, D) 		%Racine @< Elem
 		)
 	).
-	
+
 	%------------------------------------------------------------
-	% Recherche du sous-arbre qui a comme racine un element donne	
+	% Recherche du sous-arbre qui a comme racine un element donne
 	%------------------------------------------------------------
 
 subtree(Elem, avl(G,Racine,D,H), A) :-
@@ -124,7 +124,7 @@ subtree(Elem, avl(G,Racine,D,H), A) :-
 			subtree(Elem,D,A) 		%Racine @< Elem
 		)
 	).
-	
+
 	%----------------------
 	% Rotations dans un avl
 	%----------------------
@@ -145,7 +145,7 @@ right_rotate(avl(G,R,D,_H), A_Apres) :-
 	height(SG,HSG),
 	H_Apres is 1 + max(HSG,H_Inter),
 	A_Apres = avl(SG,RG,Inter,H_Apres).
-	
+
 left_rotate(avl(G,R,D,_), A_Apres) :-
 	height(G,HG),
 	D       = avl(SG,RD,SD,_),
@@ -154,7 +154,7 @@ left_rotate(avl(G,R,D,_), A_Apres) :-
 	Inter   = avl(G,R,SG,H_Inter),
 	height(SD,HSD),
 	H_Apres is 1 + max(H_Inter,HSD),
-	A_Apres = avl(Inter,RD,SD,H_Apres).	
+	A_Apres = avl(Inter,RD,SD,H_Apres).
 
 	%---------------------------------
 	% Insertion equilibree dans un avl
@@ -184,7 +184,7 @@ insert(Elem, AVL, NEW_AVL) :-
 			height(New_Gauche, New_HG),
 			height(Droite, HD),
 			H_Int is 1+max(New_HG, HD),
-			AVL_INT = avl(New_Gauche, Racine, Droite, H_Int), 
+			AVL_INT = avl(New_Gauche, Racine, Droite, H_Int),
 			right_balance(AVL_INT, NEW_AVL)
 		;
 	    % Elem @> Racine
@@ -197,24 +197,24 @@ insert(Elem, AVL, NEW_AVL) :-
 			left_balance(AVL_INT, NEW_AVL)
 		)
 	).
-	
+
 	%------------------------------------------------
 	% Suppression d'un element quelconque dans un avl
 	%------------------------------------------------
 	% On suppose que l'�l�ment � supprimer appartient bien � l'AVL,
 	% sinon le predicat �choue (en particulier si l'AVL est vide).
-	
+
 suppress(Elem, AVL, NEW_AVL) :-
 	AVL = avl(Gauche, Racine, Droite, _Hauteur),
 	(Elem = Racine ->
 		% cas de la suppression de la racine de l'avl
 		(Gauche = nil -> % cas simple d'une feuille ou d'un avl sans fils gauche
 			NEW_AVL = Droite
-		; 
+		;
 			(Droite = nil -> % cas simple d'un avl avec fils gauche mais sans fils droit
 				NEW_AVL = Gauche
 			;
-				% cas d'un avl avec fils gauche ET fils droit 
+				% cas d'un avl avec fils gauche ET fils droit
 				%Gauche \= nil
 				%Droite \= nil
 				suppress_max(Max, Gauche, New_Gauche),
@@ -223,7 +223,7 @@ suppress(Elem, AVL, NEW_AVL) :-
 			)
 		)
 	;
-		% cas des suppressions d'un element autre que la racine 
+		% cas des suppressions d'un element autre que la racine
 		(Elem @< Racine ->
 			% suppression dans le ss-arbre gauche
 			suppress(Elem, Gauche, New_Gauche),
@@ -231,13 +231,13 @@ suppress(Elem, AVL, NEW_AVL) :-
 			left_balance(AVL_INT, NEW_AVL)
 		;
 		%Racine @< Droite
-			% suppression dans le ss-arbre droite 
+			% suppression dans le ss-arbre droite
 			suppress(Elem, Droite, New_Droite),
 			AVL_INT = avl(Gauche, Racine, New_Droite,_),
 			right_balance(AVL_INT, NEW_AVL)
 		)
 	).
-	
+
 	%-------------------------------------------------------
 	% Suppression du plus petit element dans un avl non vide
 	%-------------------------------------------------------
@@ -271,7 +271,7 @@ suppress_max(Max, AVL, NEW_AVL) :-
 		AVL_INT = avl(Gauche, Racine, New_Droite,_),
 		right_balance(AVL_INT, NEW_AVL)
 	).
-	
+
 	%----------------------------------------
 	% Re-equilibrages d'un avl vers la gauche
 	%----------------------------------------
@@ -284,7 +284,7 @@ left_balance(Avl, New_Avl) :-
 	height(Gauche, HG),
 	height(Droite, HD),
 	(HG is HD-2 ->
-	% le sous-arbre droite est trop haut 
+	% le sous-arbre droite est trop haut
 		Droite = avl(G_Droite, _R_Droite, D_Droite, _HD),
 		height(G_Droite, HGD),
 		height(D_Droite, HDD),
@@ -311,13 +311,13 @@ left_balance(Avl, New_Avl) :-
 	% - soit apres insertion   d'un element dans le sous-arbre gauche
 	% - soit apres suppression d'un �l�ment dans le sous-arbre droite
 	%----------------------------------------------------------------
-	
+
 right_balance(Avl, New_Avl) :-
 	Avl = avl(Gauche, Racine, Droite, _Hauteur),
 	height(Gauche, HG),
 	height(Droite, HD),
 	(HD is HG-2 ->
-	% le sous-arbre gauche est trop haut 
+	% le sous-arbre gauche est trop haut
 		Gauche = avl(G_Gauche, _R_Gauche, D_Gauche, _HG),
 		height(G_Gauche, HGG),
 		height(D_Gauche, HDG),
@@ -337,7 +337,7 @@ right_balance(Avl, New_Avl) :-
 		New_Hauteur is 1+max(HG,HD),
 		New_Avl = avl(Gauche, Racine, Droite, New_Hauteur)
 	).
-	
+
 %-----------------------------------------
 % Arbres utilises pour les tests unitaires
 %-----------------------------------------
@@ -356,7 +356,7 @@ avl_test(8, avl(G,5,D,2)) :-
 avl_test(9, avl(G,3,D,2)) :-
 	G = avl(nil,1,nil,0),
 	avl_test(4,D).
-	
+
 /* Test uniquement valable avec ECLiPSe
 
 avl_test(10, Final) :-
@@ -367,7 +367,7 @@ avl_test(10, Final) :-
 
 
 test_insert(Final):-
-	insert(5,avl_test(1,nil),Final), 
+	insert(5,avl_test(1,nil),Final),
 	put_flat(Final).
 */
 test_height(H):-

@@ -71,37 +71,37 @@ main :-
 expand([[_,_,G],U],L):-
 	findall([U1, [F1, H1, G1], U, Mv],(rule(Mv,1,U,U1), heuristique(U1,H1), G1 is G+1, F1 is H1+G1),L).
 
-loop_successors([],_,_).
-% Appartient a QF1
-loop_successors([[U1, [_, _, _], _, _]|T],Q,_,_):-
-	belongs(U1,Q),
-	loop_successors(T,Q,_).
+loop_successors([],_,_,_,_,_,_):-!.
 
-% Appartient a Pu mais etat nouveau est meilleur
-loop_successors([[U1, [F, H, G], Pere, Mv]|T],_,Pu,Pf):-
-	belongs(U1,Pu),
-	suppress([U1,[F1,_,_],_,_], Pu, Pu_res),
-	suppress([_,U1], Pf, Pf_res),
-	F < F1,  % Le noeud le moins couteux est insere
-	insert([U1, [F, H, G], Pere, Mv],Pu_res,Pu_update),
-	insert([[F, H, G], U1],Pf_res,Pf_update),
-	loop_successors(T,_,Pu_update,Pf_update).
+loop_successors([[U,_,_,_]|T],Q,Pu,Pf,Q_update,Pu_Update,Pf_update):-
+	belongs([U,_,_,_],Q),
+	writeln("Belongs to Q"),
+	loop_successors(T,Q,Pu,Pf,Q_update,Pu_Update,Pf_update).
 
-% Appartient a Pu mais etat deja present est meilleur
-loop_successors([[U1, [F, _, _], _, _]|T],_,Pu,Pf):-
-	belongs(U1,Pu),
-	suppress([U1,[F1,H1,G1],Pere1,Mv1], Pu, Pu_res),
-	suppress([_,U1], Pf, Pf_res),
-	F >= F1,  % Le noeud le moins couteux est insere
-	insert([U1,[F1,H1,G1],Pere1,Mv1],Pu_res,Pu_update),
-	insert([[F1,H1,G1],U1],Pf_res,Pf_update),
-	loop_successors(T,_,Pu_update,Pf_update).
+loop_successors([[U,[F,_,_],_,_]|T],Q,Pu,Pf,Q_update,Pu_Update,Pf_update):-
+	belongs([U,[_,_,_],_,_],Pu),
+	suppress([U,[F_old,H_old,G_old],Pere_old,Mv_old],Pu,Pu_res),
+	F_old =< F,
+	insert([U,[F_old,H_old,G_old],Pere_old,Mv_old],Pu_res,Pu_final),
+	writeln("Old element is better"),
+	loop_successors(T,Q,Pu_final,Pf,Q_update,Pu_final,Pf_update).
 
-% Situation nouvelle
-loop_successors([[U1, [F, H, G], Pere, Mv]|T],_,Pu,Pf):-
-	insert([U1, [F, H, G], Pere, Mv],Pu,Pu_update),
-	insert([[F, H, G], U1],Pf,Pf_update),
-	loop_successors(T,_,Pu_update,Pf_update).
+loop_successors([[U,[F,H,G],Pere,Mv]|T],Q,Pu,Pf,Q_update,Pu_Update,Pf_update):-
+	belongs([U,[_,_,_],_,_],Pu),
+	suppress([U,[F_old,H_old,G_old],_,_],Pu,Pu_res),
+	suppress([[F_old,H_old,G_old],U],Pf,Pf_res),
+	F < F_old,
+	insert([U,[F,H,G],Pere,Mv],Pu_res,Pu_final),
+	insert([[F,H,G],U],Pf_res,Pf_final),
+	writeln("New element is better"),
+	loop_successors(T,Q,Pu_final,Pf_final,Q_update,Pu_final,Pf_final).
+
+loop_successors([[U,[F,H,G],Pere,Mv]|T],Q,Pu,Pf,Q_update,Pu_Update,Pf_update):-
+	insert([U,[F,H,G],Pere,Mv],Pu,Pu_final),
+	insert([[F,H,G],U],Pf,Pf_final),
+	writeln("New state"),
+	loop_successors(T,Q,Pu_final,Pf_final,Q_update,Pu_final,Pf_final).
+
 
 
 aetoile([], [], _) :- write("Pas de solution").
@@ -110,12 +110,13 @@ aetoile(Pf, _, _) :-
 	final_state(U),
 	write_state(U).
 aetoile(Pf, Pu, Q) :-
-	suppress_min([U,[F,H,G],U_Pre,Mv], Pu, Pu_res),
-	suppress([[F,H,G],U],Pf,Pf_res), % Suppression noeud frr
+	suppress_min([[F,H,G],U],Pf,Pf_res),
+	suppress([U,[F,H,G],U_Prev,Mv], Pu, Pu_res),
+	 % Suppression noeud frr
 	% determination tous les noeuds fils et calcul evaluation
 	expand([[F,H,G],U],L),
 	loop_successors(L,Q,Pu,Pf),
-	insert([U,[F,H,G],U_Pre,Mv],Q,Q_update),
+	insert([U,[F,H,G],U_Prev,Mv],Q,Q_update),
 	aetoile(Pf_res,Pu_res,Q_update).
 
 affiche_solution([]).
@@ -138,16 +139,48 @@ test_expand(L):-
 	expand([[F0,G0,H0],Ini],L),
 	affiche_solution(L).
 
-test_loop_successors_ini():-
+test_loop(1):-
 	initial_state(Ini),
+
+	% calcul de F0 (longueur totale du chemin G+H), H0 (heuristique) et G0 (distance parcourue entre Ini et U)
 	heuristique(Ini, H0),
 	G0 is 0,
 	F0 is H0 + G0,
-	expand([[F0,G0,H0],Ini],L),
-	empty(Q),
-	empty(Pu),
-	empty(Pf),
-	loop_successors(L,Q,Pu,Pf),
-	put_flat(Q),
-	put_flat(Pu),
-	put_flat(Pf).
+
+	% initialisations Pf, Pu et Q
+	empty(Pf),insert([[F0,H0,G0],Ini],Pf,Pf1),
+	empty(Pu),insert([Ini,[F0,H0,G0],nil,nil],Pu,Pu1),
+	empty(Q),insert([Ini,[F0,H0,G0],nil,nil],Q,Q1),
+	expand([[F0,H0,G0],Ini],L),
+	loop_successors(L,Q1,Pu1,Pf1,A,B,C),
+	put_flat(Q1),
+	nl,
+	put_flat(Pu1),
+	nl,
+	put_flat(Pf1).
+
+test_loop(2):-
+	initial_state(Ini),
+
+	% calcul de F0 (longueur totale du chemin G+H), H0 (heuristique) et G0 (distance parcourue entre Ini et U)
+	heuristique(Ini, H0),
+	G0 is 0,
+	F0 is H0 + G0,
+
+	% initialisations Pf, Pu et Q
+	empty(Pf),insert([[F0,H0,G0],Ini],Pf,Pf1),
+	empty(Pu),insert([Ini,[F0,H0,G0],nil,nil],Pu,Pu1),
+	empty(Q),insert([Ini,[F0,H0,G0],nil,nil],Q,Q1),
+	expand([[F0,H0,G0],Ini],L),
+	put_flat(Q1),
+	nl,
+	put_flat(Pu1),
+	nl,
+	put_flat(Pf1),
+	nl,
+	loop_successors(L,Q1,Pu1,Pf1,A,B,C),
+	put_flat(A),
+	nl,
+	put_flat(B),
+	nl,
+	put_flat(C).
