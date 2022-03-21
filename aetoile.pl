@@ -67,42 +67,8 @@ main :-
 
 %*******************************************************************************
 
-
 expand([[_,_,G],U],L):-
 	findall([U1, [F1, H1, G1], U, Mv],(rule(Mv,1,U,U1), heuristique(U1,H1), G1 is G+1, F1 is H1+G1),L).
-
-loop_successors([],_,_,_,_,_,_):-!.
-
-loop_successors([[U,_,_,_]|T],Q,Pu,Pf,Q_update,Pu_Update,Pf_update):-
-	belongs([U,_,_,_],Q),
-	writeln("Belongs to Q"),
-	loop_successors(T,Q,Pu,Pf,Q_update,Pu_Update,Pf_update).
-
-loop_successors([[U,[F,_,_],_,_]|T],Q,Pu,Pf,Q_update,Pu_Update,Pf_update):-
-	belongs([U,[_,_,_],_,_],Pu),
-	suppress([U,[F_old,H_old,G_old],Pere_old,Mv_old],Pu,Pu_res),
-	F_old =< F,
-	insert([U,[F_old,H_old,G_old],Pere_old,Mv_old],Pu_res,Pu_final),
-	writeln("Old element is better"),
-	loop_successors(T,Q,Pu_final,Pf,Q_update,Pu_final,Pf_update).
-
-loop_successors([[U,[F,H,G],Pere,Mv]|T],Q,Pu,Pf,Q_update,Pu_Update,Pf_update):-
-	belongs([U,[_,_,_],_,_],Pu),
-	suppress([U,[F_old,H_old,G_old],_,_],Pu,Pu_res),
-	suppress([[F_old,H_old,G_old],U],Pf,Pf_res),
-	F < F_old,
-	insert([U,[F,H,G],Pere,Mv],Pu_res,Pu_final),
-	insert([[F,H,G],U],Pf_res,Pf_final),
-	writeln("New element is better"),
-	loop_successors(T,Q,Pu_final,Pf_final,Q_update,Pu_final,Pf_final).
-
-loop_successors([[U,[F,H,G],Pere,Mv]|T],Q,Pu,Pf,Q_update,Pu_Update,Pf_update):-
-	insert([U,[F,H,G],Pere,Mv],Pu,Pu_final),
-	insert([[F,H,G],U],Pf,Pf_final),
-	writeln("New state"),
-	loop_successors(T,Q,Pu_final,Pf_final,Q_update,Pu_final,Pf_final).
-
-
 
 aetoile([], [], _) :- write("Pas de solution").
 aetoile(Pf, _, _) :-
@@ -115,9 +81,53 @@ aetoile(Pf, Pu, Q) :-
 	 % Suppression noeud frr
 	% determination tous les noeuds fils et calcul evaluation
 	expand([[F,H,G],U],L),
-	loop_successors(L,Q,Pu,Pf),
+	%loop_successors(L,Q,Pu,Pf),
 	insert([U,[F,H,G],U_Prev,Mv],Q,Q_update),
 	aetoile(Pf_res,Pu_res,Q_update).
+
+
+%======================= ASSIGN FUNCTION ===========================
+
+assign(Old,Old).
+
+
+%======================= LOOP SUCCESSORS ===========================
+
+% Trivial case : No element to explore
+loop_successors([],_,Pu,Pf,Pu_update,Pf_update):-
+	writeln("Finished"),
+
+	writeln("Assigned").
+
+% Trivial case : Element belongs to Q (Already explored)
+loop_successors([[U,[_,_,_],_,_]|T],Q,Pu,Pf,Pu_update,Pf_update):-
+	belongs(U,Q),
+	writeln("Already explored"),
+	loop_successors(T,Q,Pu,Pf,Pu_update,Pf_update).
+
+% Non-Trivial case : Element is already in Pu -> Keep the best one
+loop_successors([[U,[F_new,G_New,H_new],Pere_new,Mv_new]|T],Q,Pu,Pf,Pu_update,Pf_update):-
+	belongs(U,Pu),
+	writeln("Belongs to Pu"),
+	% Keep the one with the best heuristic
+	suppress([U,[F_old,G_old,H_old],_,_],Pu,Pu_res),
+	(F_old =< F_new ->
+		loop_successors(T,Q,Pu,Pf,Pu_update,Pf_update)
+	;
+		(suppress([[F_old,G_old,H_old],U],Pf,Pf_res),
+		insert([U,[F_new,G_New,H_new],Pere_new,Mv_new],Pu_res,Pu_final),
+		insert([[F_new,G_New,H_new],U],Pf_res,Pf_final),
+		loop_successors(T,Q,Pu_final,Pf_final,Pu_update,Pf_update)
+		)
+	).
+% Non-Trivial case : It is a new situation
+loop_successors([[U,[F_new,G_New,H_new],Pere_new,Mv_new]|T],Q,Pu,Pf,Pu_update,Pf_update):-
+	writeln("New situation"),
+	insert([U,[F_new,G_New,H_new],Pere_new,Mv_new],Pu,Pu_final),
+	insert([[F_new,G_New,H_new],U],Pf,Pf_final),
+	loop_successors(T,Q,Pu_final,Pf_final,Pu_update,Pf_update).
+
+%=====================================================================
 
 affiche_solution([]).
 affiche_solution([[U1,[F1,H1,G1],Pere1,Mv1]|T]):-
@@ -151,13 +161,14 @@ test_loop(1):-
 	empty(Pf),insert([[F0,H0,G0],Ini],Pf,Pf1),
 	empty(Pu),insert([Ini,[F0,H0,G0],nil,nil],Pu,Pu1),
 	empty(Q),insert([Ini,[F0,H0,G0],nil,nil],Q,Q1),
+	empty(Pu_update),empty(Pf_update),
 	expand([[F0,H0,G0],Ini],L),
-	loop_successors(L,Q1,Pu1,Pf1,A,B,C),
-	put_flat(Q1),
-	nl,
-	put_flat(Pu1),
-	nl,
-	put_flat(Pf1).
+	loop_successors(L,Q,Pu,Pf,Pu_update,Pf_update),
+	writeln("finished loop_succesors"),
+	put_flat(Pu),nl,
+	put_flat(Pf),nl,
+	put_flat(Pu_update),nl,
+	put_flat(Pf_update),nl.
 
 test_loop(2):-
 	initial_state(Ini),
@@ -172,15 +183,35 @@ test_loop(2):-
 	empty(Pu),insert([Ini,[F0,H0,G0],nil,nil],Pu,Pu1),
 	empty(Q),insert([Ini,[F0,H0,G0],nil,nil],Q,Q1),
 	expand([[F0,H0,G0],Ini],L),
+	%loop_successors(L,Q1,Pu1,Pf1,B,C),
 	put_flat(Q1),
 	nl,
 	put_flat(Pu1),
 	nl,
 	put_flat(Pf1),
-	nl,
-	loop_successors(L,Q1,Pu1,Pf1,A,B,C),
-	put_flat(A),
-	nl,
+	writeln("Update Pu:"),
 	put_flat(B),
-	nl,
+	writeln("Update Pf:"),
 	put_flat(C).
+
+test_assign:-
+	initial_state(Ini),
+
+	% calcul de F0 (longueur totale du chemin G+H), H0 (heuristique) et G0 (distance parcourue entre Ini et U)
+	heuristique(Ini, H0),
+	G0 is 0,
+	F0 is H0 + G0,
+	empty(Pf),insert([[F0,H0,G0],Ini],Pf,Pf1),
+	empty(Q),
+	writeln("Initial Pf:"),
+	put_flat(Pf1),
+	writeln("Initial Q:"),
+	put_flat(Q),
+	assign(Pf1,Q),
+	writeln("Post assign Pf:"),
+	put_flat(Pf1),
+	writeln("Post assign Q:"),
+	put_flat(Q),
+	Q is Pf1,
+	writeln("Test avec le is"),
+	put_flat(Q).

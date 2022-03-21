@@ -376,3 +376,5 @@ test_insert:-
 	empty(T1), insert(1, T1, T2),insert(45, T2, T3), put_flat(T3),nl,nl,height(T3,H),write(H).
 test_suppress_min:-
 	empty(T1), insert(1, T1, T2), insert(2, T2, T3), insert(3, T3, T),  put_90(T), suppress_min(M, T, _),nl,write(M).
+test_suppress:-
+	empty(Q),suppress_min(_,Q,_).
