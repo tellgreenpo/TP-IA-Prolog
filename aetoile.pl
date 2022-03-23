@@ -59,10 +59,10 @@ main :-
 	% initialisations Pf, Pu et Q
 	empty(Pf),insert([[F0,H0,G0],Ini],Pf,Pf1),
 	empty(Pu),insert([Ini,[F0,H0,G0],nil,nil],Pu,Pu1),
-	empty(Q),insert([Ini,[F0,H0,G0],nil,nil],Q,Q1),
+	empty(Q),
 
 	% lancement de Aetoile
-	aetoile(Pf1, Pu1, Q1).
+	aetoile(Pf1, Pu1, Q).
 
 
 %*******************************************************************************
@@ -80,10 +80,14 @@ aetoile(Pf, Pu, Q) :-
 	suppress([U,[F,H,G],U_Prev,Mv], Pu, Pu_res),
 	 % Suppression noeud frr
 	% determination tous les noeuds fils et calcul evaluation
-	expand([[F,H,G],U],L),
-	%loop_successors(L,Q,Pu,Pf),
+	expand([[F,H,G],U],L),writeln("Entering loop successors..."),
+	loop_successors(L,Q,Pu_res,Pf_res,Pu_update,Pf_update),
+	writeln("Exiting looop_successors"),
+	writeln("Inserting in Q..."),
+	writeln("Q :"),put_flat(Q),nl,
 	insert([U,[F,H,G],U_Prev,Mv],Q,Q_update),
-	aetoile(Pf_res,Pu_res,Q_update).
+	writeln("Calling A* again"),
+	aetoile(Pf_update,Pu_update,Q_update).
 
 
 %======================= ASSIGN FUNCTION ===========================
@@ -94,19 +98,17 @@ assign(Old,Old).
 %======================= LOOP SUCCESSORS ===========================
 
 % Trivial case : No element to explore
-loop_successors([],_,Pu,Pf,Pu,Pf):-
-	writeln("Finished"),
-	writeln("Assigned").
+loop_successors([],_,Pu,Pf,Pu,Pf):-!.
 
 % Trivial case : Element belongs to Q (Already explored)
 loop_successors([[U,[_,_,_],_,_]|T],Q,Pu,Pf,Pu_update,Pf_update):-
-	belongs(U,Q),
+	belongs([U,[_,_,_],_,_],Q),
 	writeln("Already explored"),
 	loop_successors(T,Q,Pu,Pf,Pu_update,Pf_update).
 
 % Non-Trivial case : Element is already in Pu -> Keep the best one
 loop_successors([[U,[F_new,G_New,H_new],Pere_new,Mv_new]|T],Q,Pu,Pf,Pu_update,Pf_update):-
-	belongs(U,Pu),
+	belongs([U,[_,_,_],_,_],Pu),
 	writeln("Belongs to Pu"),
 	% Keep the one with the best heuristic
 	suppress([U,[F_old,G_old,H_old],_,_],Pu,Pu_res),
@@ -160,9 +162,9 @@ test_loop(1):-
 	empty(Pf),insert([[F0,H0,G0],Ini],Pf,Pf1),
 	empty(Pu),insert([Ini,[F0,H0,G0],nil,nil],Pu,Pu1),
 	empty(Q),insert([Ini,[F0,H0,G0],nil,nil],Q,Q1),
-	empty(Pu_update),empty(Pf_update),
+	%empty(Pu_update),empty(Pf_update),
 	expand([[F0,H0,G0],Ini],L),
-	loop_successors(L,Q,Pu,Pf,Pu_update,Pf_update),
+	loop_successors(L,Q1,Pu1,Pf1,Pu_update,Pf_update),
 	writeln("finished loop_succesors"),
 	put_flat(Pu),nl,
 	put_flat(Pf),nl,
@@ -194,3 +196,4 @@ test_loop(2):-
 	nl,
 	writeln("Update Pf:"),
 	put_flat(C).
+
