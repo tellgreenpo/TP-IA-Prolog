@@ -94,9 +94,8 @@ assign(Old,Old).
 %======================= LOOP SUCCESSORS ===========================
 
 % Trivial case : No element to explore
-loop_successors([],_,Pu,Pf,Pu_update,Pf_update):-
+loop_successors([],_,Pu,Pf,Pu,Pf):-
 	writeln("Finished"),
-
 	writeln("Assigned").
 
 % Trivial case : Element belongs to Q (Already explored)
@@ -183,35 +182,15 @@ test_loop(2):-
 	empty(Pu),insert([Ini,[F0,H0,G0],nil,nil],Pu,Pu1),
 	empty(Q),insert([Ini,[F0,H0,G0],nil,nil],Q,Q1),
 	expand([[F0,H0,G0],Ini],L),
-	%loop_successors(L,Q1,Pu1,Pf1,B,C),
+	loop_successors(L,Q1,Pu1,Pf1,B,C),
 	put_flat(Q1),
 	nl,
 	put_flat(Pu1),
 	nl,
 	put_flat(Pf1),
+	nl,
 	writeln("Update Pu:"),
 	put_flat(B),
+	nl,
 	writeln("Update Pf:"),
 	put_flat(C).
-
-test_assign:-
-	initial_state(Ini),
-
-	% calcul de F0 (longueur totale du chemin G+H), H0 (heuristique) et G0 (distance parcourue entre Ini et U)
-	heuristique(Ini, H0),
-	G0 is 0,
-	F0 is H0 + G0,
-	empty(Pf),insert([[F0,H0,G0],Ini],Pf,Pf1),
-	empty(Q),
-	writeln("Initial Pf:"),
-	put_flat(Pf1),
-	writeln("Initial Q:"),
-	put_flat(Q),
-	assign(Pf1,Q),
-	writeln("Post assign Pf:"),
-	put_flat(Pf1),
-	writeln("Post assign Q:"),
-	put_flat(Q),
-	Q is Pf1,
-	writeln("Test avec le is"),
-	put_flat(Q).
