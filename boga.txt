@@ -1,0 +1,20 @@
+[a,b,c]
+[h,vide,d]
+[g,f,e]
+Initial state 1 ->Execution took 4 ms.
+[a,b,c]
+[h,vide,d]
+[g,f,e]
+Initial state 2 ->Execution took 1 ms.
+[a,b,c]
+[h,vide,d]
+[g,f,e]
+Initial state 3 ->Execution took 10 ms.
+[a,b,c]
+[h,vide,d]
+[g,f,e]
+Initial state 4 ->Execution took 133 ms.
+[a,b,c]
+[h,vide,d]
+[g,f,e]
+Initial state 5 ->Execution took 892 ms.

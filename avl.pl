@@ -174,9 +174,6 @@ left_rotate(avl(G,R,D,_), A_Apres) :-
 insert(Elem, nil, avl(nil,Elem,nil,0)).
 insert(Elem, AVL, NEW_AVL) :-
 	AVL = avl(Gauche,Racine,Droite,_Hauteur),
-	writeln(Elem),
-	writeln(Racine),
-	writeln(Elem = Racine),
 	(Elem = Racine ->
 			% l'�l�ment est d�j� present, pas d'insertion possible
 		fail

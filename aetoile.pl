@@ -47,9 +47,7 @@ Predicat principal de l'algorithme :
 
 %*******************************************************************************
 
-main :-
-	% récupération de l'état initial de taquin.pl
-	initial_state(Ini),
+main(Ini):-
 
 	% calcul de F0 (longueur totale du chemin G+H), H0 (heuristique) et G0 (distance parcourue entre Ini et U)
 	heuristique(Ini, H0),
@@ -80,20 +78,10 @@ aetoile(Pf, Pu, Q) :-
 	suppress([U,[F,H,G],U_Prev,Mv], Pu, Pu_res),
 	 % Suppression noeud frr
 	% determination tous les noeuds fils et calcul evaluation
-	expand([[F,H,G],U],L),writeln("Entering loop successors..."),
+	expand([[F,H,G],U],L),
 	loop_successors(L,Q,Pu_res,Pf_res,Pu_update,Pf_update),
-	writeln("Exiting looop_successors"),
-	writeln("Inserting in Q..."),
-	writeln("Q :"),put_flat(Q),nl,
 	insert([U,[F,H,G],U_Prev,Mv],Q,Q_update),
-	writeln("Calling A* again"),
 	aetoile(Pf_update,Pu_update,Q_update).
-
-
-%======================= ASSIGN FUNCTION ===========================
-
-assign(Old,Old).
-
 
 %======================= LOOP SUCCESSORS ===========================
 
@@ -103,13 +91,11 @@ loop_successors([],_,Pu,Pf,Pu,Pf):-!.
 % Trivial case : Element belongs to Q (Already explored)
 loop_successors([[U,[_,_,_],_,_]|T],Q,Pu,Pf,Pu_update,Pf_update):-
 	belongs([U,[_,_,_],_,_],Q),
-	writeln("Already explored"),
 	loop_successors(T,Q,Pu,Pf,Pu_update,Pf_update).
 
 % Non-Trivial case : Element is already in Pu -> Keep the best one
 loop_successors([[U,[F_new,G_New,H_new],Pere_new,Mv_new]|T],Q,Pu,Pf,Pu_update,Pf_update):-
 	belongs([U,[_,_,_],_,_],Pu),
-	writeln("Belongs to Pu"),
 	% Keep the one with the best heuristic
 	suppress([U,[F_old,G_old,H_old],_,_],Pu,Pu_res),
 	(F_old =< F_new ->
@@ -123,12 +109,11 @@ loop_successors([[U,[F_new,G_New,H_new],Pere_new,Mv_new]|T],Q,Pu,Pf,Pu_update,Pf
 	).
 % Non-Trivial case : It is a new situation
 loop_successors([[U,[F_new,G_New,H_new],Pere_new,Mv_new]|T],Q,Pu,Pf,Pu_update,Pf_update):-
-	writeln("New situation"),
 	insert([U,[F_new,G_New,H_new],Pere_new,Mv_new],Pu,Pu_final),
 	insert([[F_new,G_New,H_new],U],Pf,Pf_final),
 	loop_successors(T,Q,Pu_final,Pf_final,Pu_update,Pf_update).
 
-%=====================================================================
+%================================ Unit Tests =====================================
 
 affiche_solution([]).
 affiche_solution([[U1,[F1,H1,G1],Pere1,Mv1]|T]):-
@@ -143,7 +128,7 @@ affiche_solution([[U1,[F1,H1,G1],Pere1,Mv1]|T]):-
 
 
 test_expand(L):-
-	initial_state(Ini),
+	initial_state1(Ini),
 	heuristique(Ini, H0),
 	G0 is 0,
 	F0 is H0 + G0,
@@ -151,7 +136,7 @@ test_expand(L):-
 	affiche_solution(L).
 
 test_loop(1):-
-	initial_state(Ini),
+	initial_state1(Ini),
 
 	% calcul de F0 (longueur totale du chemin G+H), H0 (heuristique) et G0 (distance parcourue entre Ini et U)
 	heuristique(Ini, H0),
@@ -171,29 +156,63 @@ test_loop(1):-
 	put_flat(Pu_update),nl,
 	put_flat(Pf_update),nl.
 
-test_loop(2):-
-	initial_state(Ini),
+%================================== Execution Time ====================================
 
-	% calcul de F0 (longueur totale du chemin G+H), H0 (heuristique) et G0 (distance parcourue entre Ini et U)
-	heuristique(Ini, H0),
-	G0 is 0,
-	F0 is H0 + G0,
+execution_time(1):-
+	statistics(walltime, [_ | [_]]),
+	initial_state1(Ini),
+	main(Ini),
+	statistics(walltime, [_ | [ExecutionTime]]),
+	write("Initial state 1 ->"),
+	write('Execution took '), write(ExecutionTime), write(' ms.'), nl.
 
-	% initialisations Pf, Pu et Q
-	empty(Pf),insert([[F0,H0,G0],Ini],Pf,Pf1),
-	empty(Pu),insert([Ini,[F0,H0,G0],nil,nil],Pu,Pu1),
-	empty(Q),insert([Ini,[F0,H0,G0],nil,nil],Q,Q1),
-	expand([[F0,H0,G0],Ini],L),
-	loop_successors(L,Q1,Pu1,Pf1,B,C),
-	put_flat(Q1),
-	nl,
-	put_flat(Pu1),
-	nl,
-	put_flat(Pf1),
-	nl,
-	writeln("Update Pu:"),
-	put_flat(B),
-	nl,
-	writeln("Update Pf:"),
-	put_flat(C).
+execution_time(2):-
+	statistics(walltime, [_ | [_]]),
+	initial_state2(Ini),
+	main(Ini),
+	statistics(walltime, [_ | [ExecutionTime]]),
+	write("Initial state 2 ->"),
+	write('Execution took '), write(ExecutionTime), write(' ms.'), nl.
 
+execution_time(3):-
+	statistics(walltime, [_ | [_]]),
+	initial_state3(Ini),
+	main(Ini),
+	statistics(walltime, [_ | [ExecutionTime]]),
+	write("Initial state 3 ->"),
+	write('Execution took '), write(ExecutionTime), write(' ms.'), nl.
+
+execution_time(4):-
+	statistics(walltime, [_ | [_]]),
+	initial_state4(Ini),
+	main(Ini),
+	statistics(walltime, [_ | [ExecutionTime]]),
+	write("Initial state 4 ->"),
+	write('Execution took '), write(ExecutionTime), write(' ms.'), nl.
+
+execution_time(5):-
+	statistics(walltime, [_ | [_]]),
+	initial_state5(Ini),
+	main(Ini),
+	statistics(walltime, [_ | [ExecutionTime]]),
+	write("Initial state 5 ->"),
+	write('Execution took '), write(ExecutionTime), write(' ms.'), nl.
+
+
+% Stack overflow error
+execution_time(6):-
+	statistics(walltime, [_ | [_]]),
+	initial_state6(Ini),
+	main(Ini),
+	statistics(walltime, [_ | [ExecutionTime]]),
+	write("Initial state 6 ->"),
+	write('Execution took '), write(ExecutionTime), write(' ms.'), nl.
+
+execute_tests(File):-
+	tell(File),
+	execution_time(1),
+	execution_time(2),
+	execution_time(3),
+	execution_time(4),
+	execution_time(5),
+	told.
